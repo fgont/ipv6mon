@@ -1,0 +1,9 @@
+/var/log/ipv6mon.log {
+  rotate 10
+  monthly
+  compress
+  missingok
+  copytruncate
+  notifempty
+}
+

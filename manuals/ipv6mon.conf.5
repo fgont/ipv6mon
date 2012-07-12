@@ -1,0 +1,172 @@
+.TH IPV6MON.CONF 5
+.SH NAME
+ipv6mon.conf \- Configuration file for the IPv6 address monitoring daemon (ipv6mon)
+.SH SYNOPSIS
+.B /etc/ipv6mon.conf
+.SH DESCRIPTION
+This file controls the operation of the
+.B ipv6mon
+daemon. It aloows the system administrator to configure parameters such as:
+.TS
+tab (@);
+l l.
+@\+ Network interface card to use for address monitoring
+@\+ Type of probe packets to use
+@\+ Various timing paramaters (such as probe frequency)
+.TE
+
+The configuration file follows the following general format:
+.sp
+.RS 4
+.nf
+  # Comments
+  Variable1=Value1  # Comments
+  Variable2=Value2
+  
+.fi
+.RE
+
+The following configuration options are currently supported:
+.TP
+\fBNetworkInterface\fR 
+This variable specifies the network interface that will be used for IPv6 address monitoring.
+.TP
+\fBAddressLogFile\fR
+This variable specifies the pathname of the log file where address usage will be recorded. If left unspecified, the pathname defaults to
+.IR /var/log/ipv6mon.log . 
+.TP
+\fBLockFile\fR
+This variable is used to specify the pathname of the lockfile (PID file) to be used to easily identify running instances of
+.B ipv6mon 
+. If left unspecified, it defaults to 
+.IR /var/run/ipv6mon.pid . 
+.TP
+\fBUnprivilegedUser\fR
+This variable specifies the unprivileged username that 
+. ipv6mon
+will switch to (i.e., setuid), such that superuser privileges are released. If left unspecified, it defaults to 
+.IR ipv6mon
+.
+.TP
+\fBUnprivilegedGroup\fR
+This variable specifies the unprivileged group that
+. B ipv6mon
+will switch to (i.e., setgid), such that superuser privileges are released. If left unspecified, it defaults to 
+.IR ipv6mon
+.
+.TP
+\fBTimestampFormat\fR
+This option specifies the format to be used for the timestamps that are included in the log file. Possible values are 
+.IR date
+and 
+.IR epoch .
+The former causes the tool to include the timestamps in the format “Sat Dec 24 05:24:50 2011”, whereas the latter causes the tool to include timestamps as the number of seconds since the Epoch. If left unspecified, this option defaults to
+.IR date
+. 
+.TP
+\fBMaxAddressEntries\fR
+This variable specifies the maximum number of addresses that
+.B ipv6mon
+will keep track of at any given time. Since
+.B ipv6mon
+keeps the list of currently-used addresses in memory (such that they can be probed on a regular basis), the variable
+.IR MaxAddressEntries
+indirectly enforces a limit on the amount of system memory that
+.B ipv6mon
+will use.
+.TP
+\fBMaxCandidateEntries\fR
+This variable specifies the maximum number of "candidate addresses" that
+.B ipv6mon
+will create at any given time. If left unspecified, it defaults to
+.IR MaxAddressEntries
+/ 4.
+.TP
+\fBAddressTimeout\fR
+This variable specifies the amount of time (in seconds) after which an IPv6 address will be considered “unused” if no response is received from that address. 
+.TP
+\fBCandidateAddressTimeout\fR
+This variable specifies the amount of time (in seconds) after which a “candidate” IPv6 address will be considered “unused” if no response is received from such address. Since candidate addresses are created as a result of a heuristics (rather than in response to packets originated from such addresses),
+.IR CandidateAddressTimeout
+will typically be shorter than
+.IR AddressTimeout 
+, such that system resources are not tied to these (possibly unused) addresses for an unnecessarily long period of time. 
+.TP
+\fBMaxUnprobedInterval\fR
+This variable specifies the maximum amount of time (in seconds) that an address will remain “unprobed”. For obvious reasons, its value should be smaller than that of
+.IR AddressTimeout
+and that of
+.IR CandidateAddressTimeout
+, and should also usually account for more than one probe packet to be sent before an address is "timed out". 
+.TP
+\fBUnicastProbeInterval\fR
+This variable specifies the amount of time (in seconds) between unicast probes sent to an IPv6 address. Once
+.IR MaxUnprobedInterval
+seconds have elapsed without probing an addresses, unicast probes will be sent every
+.IR UnicastProbeInterval
+seconds until a response is received or the address is timed out. 
+.TP 
+\fBMcastEchoProbeInterval\fR
+This variable specifies the amount of time (in seconds) between ICMPv6 Echo Request probe packets sent to the all-nodes on-link multicast address (ff02::1). Multicast Echo Request packets can easily detect newly attached devices and probe existing devices. However, because they are sent to a multicast address, the interval should be long enough such that unnecessary traffic spikes are reduced. 
+
+Note: Some operating systems (notably Windows Vista and Windows 7) will not respond to ICMPv6 echo request messages sent to a multicast address. However, such systems can still be detected by means of probe packets that include an unsupported option of type 10xxxxxx. 
+
+.TP
+\fBMcastUnrecProbeInterval 
+This variable specifies the amount of time (in seconds) between ICMPv6 Echo Request probe packets (containing an unrecognized option in a Destination Options header) sent to the all-nodes on-link multicast address (ff02::1). Multicast Echo Request packets can easily detect newly attached devices and probe existing devices. However, because they are sent to a multicast address, the interval should be long enough such that unnecessary traffic spikes are reduced. 
+ 
+
+.TP
+\fBProbeType
+This variable specifies the type of probe packets that will be used for both unicast and multicast probes. 
+.IR echo
+specifies that only regular ICMPv6 Echo Request messages should be used. 
+.IR unrec
+specifies that only ICMPv6 Echo Request messages with an unsupported option should be used. 
+.IR all
+specifies that both types of probe packets should be used. If left unspecified, this option defaults to
+.IR all
+.
+
+.SH EXAMPLES
+The following is a sample
+.IR ipv6mon.conf
+file.
+.sp
+
+.nf
+#
+# ipv6mon configuration file
+#
+
+NetworkInterface=eth0               # Network Card to monitor
+AddressLogFile=/var/log/ipv6mon.log # Where to log address usage
+LockFile=/var/run/ipv6mon.pid       # Where to write the daemon's PID
+UnprivilegedUser=ipv6mon            # Unprivileged user to switch to
+UnprivilegedGroup=ipv6mon           # Unprivileged group to switch to
+TimestampFormat=date                # Timestamps format
+MaxAddressEntries=2000              # Maximum number of IPv6 addresses
+#MaxCandidateEntries=1000           # Max. number of "candidate" addr
+AddressTimeout=90                   # Address timeout value
+CandidateAddressTimeout=40          # Candidate Address Timeout
+MaxUnprobedInterval=40              # Max. unprobed time
+UnicastProbeInterval=15             # Time between unicast probes
+McastEchoProbeInterval=120          # Time between Mcast Echo Probes
+McastUnrecProbeInterval=120         # Time between Mcast Unrec Probes
+ProbeType=all                       # Probe types (echo, unrec, all)
+  
+.fi
+.RE
+.SH "SEE ALSO"
+.BR ipv6mon (8).
+
+.SH AUTHOR
+The
+.B ipv6mon
+tool and the corresponding manual pages were produced by Fernando Gont <fgont@si6networks.com> on behalf of the United Kingdom's Centre for the Protection of National Infrastructure (CPNI).
+
+.SH COPYRIGHT
+Copyright (c) 2012 United Kingdom's Centre for the Protection of National Infrastructure (CPNI).
+
+Permission is granted to copy, distribute and/or modify this document under the terms of the GNU Free Documentation License, Version 1.3 or any later version published by the Free Software Foundation; with the Invariant Sections being just "AUTHOR" and "COPYRIGHT", with no Front-Cover Texts, and with no Back-Cover Texts.  A copy of the license is available at
+.IR <http://www.gnu.org/licenses/fdl.html> .

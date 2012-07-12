@@ -1,0 +1,107 @@
+.TH IPV6MON 8
+.SH NAME
+ipv6mon \- IPv6 address monitoring daemon
+.SH SYNOPSIS
+.B ipv6mon
+.RB [\| \-c
+.IR configfile \|]
+.RB [\| \-v \|]
+.RB [\| \-q \|]
+.RB [\| \-h \|]
+.SH DESCRIPTION
+.B ipv6mon
+is tool meant for monitoring IPv6 address usage on a local network. It is particularly useful in networks that employ IPv6 Stateless Address Auto-Configuration (as opposed to DHCPv6), where address assignment is decentralized and there is no central server that records which IPv6 addresses have been assigned to which nodes during which period of time. 
+
+.B ipv6mon
+employs a number of techniques to determine which IPv6 addresses are in use on the local network, and active probing to determine whether such addresses remain active. 
+
+\fBADDRESS DISCOVERY TECHNIQUES\fR
+
+.B ipv6mon
+employs a number of techniques techniques to discover active IPv6 addresses: 
+.TS
+tab (@);
+l l.
+@\+ Active multicast probes
+@\+ Passive monitoring of Duplicate Address Detection (DAD) traffic
+@\+ Address generation heuristics
+.TE
+
+\fBMulticast probes\fR
+
+.B ipv6mon
+regularly sends multicast probe packets to the all-nodes link-local multicast address (ff02::1), such that it can discover new attached nodes. Two different types of probe packets are used: 
+
+.TS
+tab (@);
+l l.
+@\+ Regular ICMPv6 Echo Request packets
+@\+ ICMPv6 packets with an unsupported IPv6 option of type 10xxxxxx 
+.TE
+
+Regular ICMPv6 Echo Request packets elicit ICMPv6 Echo Response packets from all local nodes that normally respond to such packets. On the other hand, ICMPv6 packets including an unsupported option of type 10xxxxxx elicit ICMPv6 Parameter Problem error messages, and can be effective to discover nodes that do not usually respond to multicast ICMPv6 echo requests.
+
+Both multicast probe packets are sent with different Source Addresses, such that they elicit responses from different addresses (as a result of the default IPv6 Source Address selection policy). Hence. all (or most) addresses of each node can be discovered.
+
+\fBPassive monitoring of Duplicate Address Detection (DAD) traffic\fR
+
+.B ipv6mon
+also monitors IPv6 Duplicate Address Detection (DAD) traffic, such that all newly configured addresses are discovered as soon as possible. 
+
+\fBAddress generation heuristics\fR
+
+Whenever an active address is detected, heuristics are performed to discover other addresses in use by the same node. Namely, the Interface-ID of the newly discovered address is used with all other local prefixes to form "candidate" addresses (addresses that might be in use in the local network). Thus, it is possible for
+.B ipv6mon
+to discover active addresses even if they are not used to send traffic on the local network (e.g., discover traditional SLAAC addresses used by hosts that employ “Privacy Addresses”). 
+
+
+.SH OPTIONS
+Most of the operation parameters of the
+.B ipv6mon
+tool can be configured by the system administrator through the corresponding configuration file. Some of them can be configured through command-line options.
+
+.TP
+.BI \-c\  file ,\ \-\-config\-file\  file
+This option specifies the pathname of the
+.B ipv6mon
+configuration file, to be used instead of the default
+.IR /etc/ipv6mon.conf .
+.TP
+.B \-q, \-\-show-config
+This option causes
+.B ipv6mon
+to read the configuration file and output the different parameters that would result from that configuration. When this option is set,
+.B ipv6mon
+will exit immediately after the configuration parameters have been printed on standard output.
+.TP
+.B \-v, \-\-verbose
+This option causes
+.B ipv6mon
+to read the configuration file and output the different parameters that would result from that configuration. When this option is set,
+.B ipv6mon
+will exit immediately after the configuration parameters have been printed on standard output.
+.TP
+.B \-h, \-\-help
+This option causes
+.B ipv6mon
+to print usage information on standard output.
+
+.SH FILES
+.TP
+.I /etc/ipv6mon.conf
+.B ipv6mon
+configuration file. See
+.BR ipv6mon.conf (5)
+for further details.
+.SH "SEE ALSO"
+.BR ipv6mon.conf (5).
+.SH AUTHOR
+The
+.B ipv6mon
+tool and the corresponding manual pages were produced by Fernando Gont <fgont@si6networks.com> on behalf of the United Kingdom's Centre for the Protection of National Infrastructure (CPNI).
+
+.SH COPYRIGHT
+Copyright (c) 2012 United Kingdom's Centre for the Protection of National Infrastructure (CPNI).
+
+Permission is granted to copy, distribute and/or modify this document under the terms of the GNU Free Documentation License, Version 1.3 or any later version published by the Free Software Foundation; with the Invariant Sections being just "AUTHOR" and "COPYRIGHT", with no Front-Cover Texts, and with no Back-Cover Texts.  A copy of the license is available at
+.IR <http://www.gnu.org/licenses/fdl.html> .
