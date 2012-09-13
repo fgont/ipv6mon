@@ -1,10 +1,7 @@
 /*
- * ipv6mon v0.2: An IPv6 Address Monitoring Tool
+ * ipv6mon v1.0: An IPv6 Address Monitoring Tool
  *
- * Copyright (C) 2011 United Kingdom's Centre for the Protection of 
- *                    National Infrastructure (UK CPNI)
- *
- * Programmed by Fernando Gont on behalf of CPNI (http://www.cpni.gov.uk)
+ * Copyright (C) 2011-2012 Fernando Gont
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -2207,59 +2204,61 @@ int get_if_addrs(struct iface_data *idata){
 	}
 
 	for(ptr=ifptr; ptr != NULL; ptr= ptr->ifa_next){
+		if(ptr->ifa_addr != NULL){
 #ifdef __linux__
-		if( !(idata->ether_flag) && ((ptr->ifa_addr)->sa_family == AF_PACKET) && (ptr->ifa_data != NULL)){
-			if(strncmp(idata->iface, ptr->ifa_name, IFACE_LENGTH-1) == 0){
-				sockpptr = (struct sockaddr_ll *) (ptr->ifa_addr);
-				if(sockpptr->sll_halen == 6){
-					idata->ether = *((struct ether_addr *)sockpptr->sll_addr);
-					idata->ether_flag=1;
+			if( !(idata->ether_flag) && ((ptr->ifa_addr)->sa_family == AF_PACKET)){
+				if(strncmp(idata->iface, ptr->ifa_name, IFACE_LENGTH-1) == 0){
+					sockpptr = (struct sockaddr_ll *) (ptr->ifa_addr);
+					if(sockpptr->sll_halen == 6){
+						idata->ether = *((struct ether_addr *)sockpptr->sll_addr);
+						idata->ether_flag=1;
+					}
 				}
 			}
-		}
 #elif defined (__FreeBSD__) || defined(__NetBSD__) || defined (__OpenBSD__) || defined(__APPLE__)
-		if( !(idata->ether_flag) && ((ptr->ifa_addr)->sa_family == AF_LINK) && (ptr->ifa_data != NULL)){
-			if(strncmp(idata->iface, ptr->ifa_name, IFACE_LENGTH-1) == 0){
-				sockpptr = (struct sockaddr_dl *) (ptr->ifa_addr);
-				if(sockpptr->sdl_alen == 6){
-					idata->ether= *((struct ether_addr *)(sockpptr->sdl_data + sockpptr->sdl_nlen));
-					idata->ether_flag= 1;
+			if( !(idata->ether_flag) && ((ptr->ifa_addr)->sa_family == AF_LINK)){
+				if(strncmp(idata->iface, ptr->ifa_name, IFACE_LENGTH-1) == 0){
+					sockpptr = (struct sockaddr_dl *) (ptr->ifa_addr);
+					if(sockpptr->sdl_alen == 6){
+						idata->ether= *((struct ether_addr *)(sockpptr->sdl_data + sockpptr->sdl_nlen));
+						idata->ether_flag= 1;
+					}
 				}
 			}
-		}
 #endif
-		else if((ptr->ifa_addr)->sa_family == AF_INET6){
-			sockin6ptr= (struct sockaddr_in6 *) (ptr->ifa_addr);
+			else if((ptr->ifa_addr)->sa_family == AF_INET6){
+				sockin6ptr= (struct sockaddr_in6 *) (ptr->ifa_addr);
 
-			if(!(idata->ip6_local_flag) && (((sockin6ptr->sin6_addr).s6_addr16[0] & htons(0xffc0)) == htons(0xfe80))){
-				if(strncmp(idata->iface, ptr->ifa_name, IFACE_LENGTH-1) == 0){
-					idata->ip6_local = sockin6ptr->sin6_addr;
+				if(!(idata->ip6_local_flag) && (((sockin6ptr->sin6_addr).s6_addr16[0] & htons(0xffc0)) == htons(0xfe80))){
+					if(strncmp(idata->iface, ptr->ifa_name, IFACE_LENGTH-1) == 0){
+						idata->ip6_local = sockin6ptr->sin6_addr;
 #if defined (__FreeBSD__) || defined(__NetBSD__) || defined (__OpenBSD__) || defined(__APPLE__)
-					/* BSDs store the interface index in s6_addr16[1], so we must clear it */
-					idata->ip6_local.s6_addr16[1] =0;
-					idata->ip6_local.s6_addr16[2] =0;
-					idata->ip6_local.s6_addr16[3] =0;					
+						/* BSDs store the interface index in s6_addr16[1], so we must clear it */
+						idata->ip6_local.s6_addr16[1] =0;
+						idata->ip6_local.s6_addr16[2] =0;
+						idata->ip6_local.s6_addr16[3] =0;					
 #endif
-					idata->ip6_local_flag= 1;
+						idata->ip6_local_flag= 1;
+					}
 				}
-			}
-			else if((((sockin6ptr->sin6_addr).s6_addr16[0] & htons(0xffc0)) != htons(0xfe80))){
-				if(strncmp(idata->iface, ptr->ifa_name, IFACE_LENGTH-1) == 0){
-					if(!is_ip6_in_prefix_list( &(sockin6ptr->sin6_addr), &(idata->ip6_global))){
-						if(idata->ip6_global.nprefix < idata->ip6_global.maxprefix){
-							if( (idata->ip6_global.prefix[idata->ip6_global.nprefix] = \
-												malloc(sizeof(struct prefix_entry))) == NULL){
-								if(verbose_f)
-									syslog(LOG_ERR, "get_if_addrs(): Error while storing Source Address");
+				else if((((sockin6ptr->sin6_addr).s6_addr16[0] & htons(0xffc0)) != htons(0xfe80))){
+					if(strncmp(idata->iface, ptr->ifa_name, IFACE_LENGTH-1) == 0){
+						if(!is_ip6_in_prefix_list( &(sockin6ptr->sin6_addr), &(idata->ip6_global))){
+							if(idata->ip6_global.nprefix < idata->ip6_global.maxprefix){
+								if( (idata->ip6_global.prefix[idata->ip6_global.nprefix] = \
+													malloc(sizeof(struct prefix_entry))) == NULL){
+									if(verbose_f)
+										syslog(LOG_ERR, "get_if_addrs(): Error while storing Source Address");
 
-								return(-1);
+									return(-1);
+								}
+
+								(idata->ip6_global.prefix[idata->ip6_global.nprefix])->len = 64;
+								(idata->ip6_global.prefix[idata->ip6_global.nprefix])->ip6 = sockin6ptr->sin6_addr;
+								idata->ip6_global.nprefix++;
+								idata->ip6_global_nconfig++;
+								idata->ip6_global_flag= VALID_MAPPING;
 							}
-
-							(idata->ip6_global.prefix[idata->ip6_global.nprefix])->len = 64;
-							(idata->ip6_global.prefix[idata->ip6_global.nprefix])->ip6 = sockin6ptr->sin6_addr;
-							idata->ip6_global.nprefix++;
-							idata->ip6_global_nconfig++;
-							idata->ip6_global_flag= VALID_MAPPING;
 						}
 					}
 				}
@@ -2298,13 +2297,15 @@ int check_local_addresses(struct iface_data *idata){
 		}
 
 		for(ptr=ifptr; ptr != NULL; ptr= ptr->ifa_next){
-			if((ptr->ifa_addr)->sa_family == AF_INET6){
-				sockin6ptr= (struct sockaddr_in6 *) (ptr->ifa_addr);
+			if(ptr->ifa_addr != NULL){
+				if((ptr->ifa_addr)->sa_family == AF_INET6){
+					sockin6ptr= (struct sockaddr_in6 *) (ptr->ifa_addr);
 
-				if((((sockin6ptr->sin6_addr).s6_addr16[0] & htons(0xffc0)) != htons(0xfe80))){
-					if(strncmp(idata->iface, ptr->ifa_name, IFACE_LENGTH-1) == 0){
-						if( (prefptr=lookup_ip6_in_address_list(&(idata->ip6_global), &(sockin6ptr->sin6_addr))) != NULL){
-							prefptr->tstamp=curtime;
+					if((((sockin6ptr->sin6_addr).s6_addr16[0] & htons(0xffc0)) != htons(0xfe80))){
+						if(strncmp(idata->iface, ptr->ifa_name, IFACE_LENGTH-1) == 0){
+							if( (prefptr=lookup_ip6_in_address_list(&(idata->ip6_global), &(sockin6ptr->sin6_addr))) != NULL){
+								prefptr->tstamp=curtime;
+							}
 						}
 					}
 				}
