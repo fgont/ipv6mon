@@ -1,5 +1,5 @@
 ********************************************************************************
-*             UK CPNI IPv6 Address Monitoring Daemon version 0.1               *
+*          SI6 Networks' IPv6 Address Monitoring Daemon version 1.0            *
 ********************************************************************************
 
 Description of each of the directories:
