@@ -2,10 +2,7 @@
 #
 # ipv6mon un-installation script for FreeBSD systems
 #
-# Copyright (C) 2011 United Kingdom's Centre for the Protection of 
-#                    National Infrastructure (UK CPNI)
-# 
-# Programmed by Fernando Gont on behalf of CPNI (http://www.cpni.gov.uk)
+# Copyright (C) 2011-2012 Fernando Gont
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
