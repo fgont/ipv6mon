@@ -19,7 +19,7 @@
 ###############################################################################
 
 	if ! uname -a | grep -e FreeBSD >/dev/null 2>&1; then
-		echo "This uninstaller script should be used only with FreeBSD"
+		echo "This installer script should be used only with FreeBSD"
 		exit 1
 	fi
 
