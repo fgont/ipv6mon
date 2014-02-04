@@ -1,0 +1,49 @@
+#!/bin/sh
+
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
+DAEMON=/usr/sbin/ipv6mon
+NAME=ipv6mon
+DESC='IPv6 Address Monitoring Daemon'
+CONFIGFILE=/etc/ipv6mon.conf
+LOCKFILE=/var/run/ipv6mon.pid
+OPTIONS="-v -c $CONFIGFILE"
+
+. /etc/rc.common
+
+
+StartService()
+{
+    
+    ConsoleMessage "Starting $DESC... "
+	
+	if $DAEMON $OPTIONS;then
+		ConsoleMessage "$DESC started."
+
+	else
+		ConsoleMessage "$DESC failed to start."
+	fi
+
+}
+
+
+StopService()
+{
+	ConsoleMessage "Stopping $DESC..."
+	if kill `cat $LOCKFILE` 2>/dev/null; then
+	ConsoleMessage "$DESC stopped."
+	else
+	ConsoleMessage "$DESC failed to stop."
+	fi
+
+}
+
+
+RestartService()
+{
+    StopService
+    StartService
+}
+
+
+RunService "$1"
+
