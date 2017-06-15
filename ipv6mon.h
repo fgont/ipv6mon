@@ -3,6 +3,8 @@
  *
  */
 
+#define IP6MON_VERSION	"1.0"
+
 #define LUI		long unsigned int
 
 #define BUFFER_SIZE	65556
