@@ -884,7 +884,7 @@ void usage(void){
  * Prints help information for the na-attack tool
  */
 void print_help(void){
-	puts( "ipv6mon version 1.0\nAn IPv6 Address Monitoring tool\n");
+	printf( "ipv6mon version %.1f\nAn IPv6 Address Monitoring tool\n",IP6MON_VERSION);
 	usage();
     
 	puts("\nOPTIONS:\n"
