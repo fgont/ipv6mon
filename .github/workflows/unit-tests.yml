@@ -1,0 +1,49 @@
+name: Build, installation, and unit tests
+
+on:
+  push:
+    branches:
+    - '**'
+  pull_request:
+    branches:
+    - '**'
+
+jobs:
+  UbuntuLatest:
+    name: Test on Ubuntu-latest
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install dependencies
+      run: sudo apt-get install -y libpcap-dev
+    - name: Make the installation script executable
+      run: chmod u+x INSTALL-Debian-Ubuntu.sh
+    - name: Build and install tools
+      run: sudo ./INSTALL-Debian-Ubuntu.sh
+
+  Ubuntu2204:
+    name: Test on Ubuntu 22.04
+    runs-on: ubuntu-22.04
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install dependencies
+      run: sudo apt-get install -y libpcap-dev
+    - name: Make the installation script executable
+      run: chmod u+x INSTALL-Debian-Ubuntu.sh
+    - name: Build and install tools
+      run: sudo ./INSTALL-Debian-Ubuntu.sh
+
+  Ubuntu2004:
+    name: Test on Ubuntu 20.04
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install dependencies
+      run: sudo apt-get install -y libpcap-dev
+    - name: Make the installation script executable
+      run: chmod u+x INSTALL-Debian-Ubuntu.sh
+    - name: Build and install tools
+      run: sudo ./INSTALL-Debian-Ubuntu.sh
