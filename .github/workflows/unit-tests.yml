@@ -47,3 +47,18 @@ jobs:
       run: chmod u+x INSTALL-Debian-Ubuntu.sh
     - name: Build and install tools
       run: sudo ./INSTALL-Debian-Ubuntu.sh
+
+  MacOSLatest:
+    name: Test on MacOS-latest
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install dependencies
+      run: |
+        brew update
+        brew install libpcap
+    - name: Make the installation script executable
+      run: chmod u+x INSTALL-MacOSX.sh
+    - name: Build and install tools
+      run: sudo ./INSTALL-MacOSX.sh
