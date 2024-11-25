@@ -1,0 +1,5 @@
+{
+  Description     = "IPv6 Address Monitor startup routines";
+  Provides        = ("ipv6mon");
+  OrderPreference = "None";
+}
